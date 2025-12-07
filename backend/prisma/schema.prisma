@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vendor {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  address   String?
+  contactPerson String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  rfpVendors RFPVendor[]
+  proposals  Proposal[]
+  
+  @@map("vendors")
+}
+
+model RFP {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  budget      Float?
+  deadline    DateTime?
+  requirements Json     // Structured requirements parsed by AI
+  status      RFPStatus @default(DRAFT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  rfpVendors  RFPVendor[]
+  proposals   Proposal[]
+  
+  @@map("rfps")
+}
+
+model RFPVendor {
+  id        String   @id @default(uuid())
+  rfpId     String
+  vendorId  String
+  sentAt    DateTime?
+  emailSent Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  rfp    RFP    @relation(fields: [rfpId], references: [id], onDelete: Cascade)
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  
+  @@unique([rfpId, vendorId])
+  @@map("rfp_vendors")
+}
+
+model Proposal {
+  id             String         @id @default(uuid())
+  rfpId          String
+  vendorId       String
+  rawContent     String         // Original email content
+  parsedData     Json           // AI-parsed structured data
+  pricing        Float?
+  deliveryTime   String?
+  warranty       String?
+  paymentTerms   String?
+  status         ProposalStatus @default(RECEIVED)
+  aiScore        Float?         // AI-generated score
+  aiRecommendation String?      // AI recommendation
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  
+  rfp    RFP    @relation(fields: [rfpId], references: [id], onDelete: Cascade)
+  vendor Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  
+  @@unique([rfpId, vendorId])
+  @@map("proposals")
+}
+
+model AIPrompt {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  description String?
+  promptType  PromptType
+  template    String       // The actual prompt template
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  @@map("ai_prompts")
+}
+
+model EmailLog {
+  id          String    @id @default(uuid())
+  fromEmail   String
+  toEmail     String
+  subject     String
+  body        String
+  direction   EmailDirection
+  processed   Boolean   @default(false)
+  rfpId       String?
+  proposalId  String?
+  createdAt   DateTime  @default(now())
+  
+  @@map("email_logs")
+}
+
+enum RFPStatus {
+  DRAFT
+  SENT
+  IN_PROGRESS
+  EVALUATING
+  COMPLETED
+  CANCELLED
+}
+
+enum ProposalStatus {
+  RECEIVED
+  PARSING
+  PARSED
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+}
+
+enum PromptType {
+  RFP_CREATION
+  PROPOSAL_PARSING
+  PROPOSAL_COMPARISON
+  RECOMMENDATION
+}
+
+enum EmailDirection {
+  INBOUND
+  OUTBOUND
+}
