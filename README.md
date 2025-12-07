@@ -291,7 +291,7 @@ Before you begin, ensure you have the following installed:
 
 ```powershell
 git clone <repository-url>
-cd "d:\Zauto Applications\Aerchain"
+cd "d:\Applications\Aerchain"
 ```
 
 #### 2. Install Dependencies
