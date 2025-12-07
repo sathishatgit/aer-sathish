@@ -696,8 +696,8 @@ This project is licensed under the MIT License.
 
 For issues and questions:
 - Create an issue in the repository
-- Contact: support@aerchain.com
-- Documentation: [Wiki](https://github.com/your-repo/wiki)
+- Contact: sathishbabudeveloper@gmail.com
+- Documentation: backendUrl/api
 
 ---
 
